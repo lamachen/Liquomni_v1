@@ -23,7 +23,7 @@ jobs:
       - name: Toolchain
         run: |
           sudo apt-get update
-          sudo apt-get install -y ninja-build python3-pip libspirv-headers-dev
+          sudo apt-get install -y ninja-build python3-pip
           pip install --break-system-packages capstone pyelftools || true
           if [ -z "$(ls -d "$ANDROID_HOME"/ndk/* 2>/dev/null)" ]; then
             yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;27.2.12479018"
