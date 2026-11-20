@@ -25,16 +25,20 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ninja-build python3-pip
           pip install --break-system-packages capstone pyelftools || true
-          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;${NDK_VERSION}" "cmake;3.31.6"
+          if [ -z "$(ls -d "$ANDROID_HOME"/ndk/* 2>/dev/null)" ]; then
+            yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;27.2.12479018"
+          fi
+          echo "NDK verfuegbar unter: $(ls -d "$ANDROID_HOME"/ndk/* 2>/dev/null)"
           git clone --depth 1 --branch "$VULKAN_HEADERS_TAG" \
             https://github.com/KhronosGroup/Vulkan-Headers "$RUNNER_TEMP/vh"
-          echo "$ANDROID_HOME/cmake/3.31.6/bin" >> "$GITHUB_PATH"
 
       - name: Build (Vulkan)
         env:
-          ANDROID_NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/${{ env.NDK_VERSION }}
           VULKAN_HEADERS: ${{ runner.temp }}/vh
-        run: native/build_engine.sh --backend vulkan
+        run: |
+          export ANDROID_NDK_HOME="$(ls -d "$ANDROID_HOME"/ndk/* | sort -V | tail -1)"
+          echo "Verwende NDK: $ANDROID_NDK_HOME"
+          native/build_engine.sh --backend vulkan
 
       - name: Gate (GPU-Backend muss enthalten sein)
         run: python3 native/native_audit.py --gate gpu app/src/main/jniLibs/arm64-v8a
