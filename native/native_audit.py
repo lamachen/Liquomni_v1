@@ -228,8 +228,8 @@ REQUIRED_OMNI_API = [
 ]
 
 GPU_BACKEND_PATTERNS = {
-    "vulkan": re.compile(rb"(?i)vulkan"),
-    "opencl": re.compile(rb"(?i)opencl"),
+    "vulkan": re.compile(rb"(?i)(vulkan|_vk_)"),
+    "opencl": re.compile(rb"(?i)(opencl|_cl_)"),
     "hexagon": re.compile(rb"(?i)hexagon"),
     "cuda": re.compile(rb"(?i)\bcuda\b"),
     "metal": re.compile(rb"(?i)\bmetal\b"),
@@ -306,7 +306,10 @@ def audit_library(path: str, with_isa: bool, isa_bytes: int = 0) -> dict:
     gpu = {}
     for name, rx in GPU_BACKEND_PATTERNS.items():
         sym_hits = [n for n in export_names if rx.search(n.encode())]
-        reg_symbol = f"ggml_backend_{name}_reg" in export_names
+        reg_symbol = (
+            f"ggml_backend_{name}_reg" in export_names
+            or (name == "vulkan" and ("ggml_backend_vk_reg" in export_names or "libvulkan.so" in rep["needed"]))
+        )
         gpu[name] = {
             "reg_symbol": reg_symbol,
             "string_hits": len(rx.findall(blobs)),
