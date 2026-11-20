@@ -1,0 +1,21 @@
+{
+  "generated_at": "2026-11-20T04:35:29+00:00",
+  "builder": "native/build_engine.sh",
+  "abi": "arm64-v8a",
+  "build_id": "5ae8624e9b3c",
+  "llama_rn_commit": "a8b691b",
+  "llama_cpp_commit": "a8b691b",
+  "cpu_arch_flags": "-march=armv8.2-a+dotprod+i8mm",
+  "shim_abi_version": 1,
+  "backends": {
+    "vulkan": true,
+    "opencl": false,
+    "hexagon": false
+  },
+  "libraries": {
+    "libllama.so": {
+      "sha256": "5ae8624e9b3cc30cb704b3368a846cb70700a1ca774a46752e7a0a83a2422b0e",
+      "bytes": 28692144
+    }
+  }
+}
