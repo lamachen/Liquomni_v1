@@ -1,0 +1,6 @@
+{
+  "name": "LFM3-Omni",
+  "description": "Lokale Hardware-Schnittstelle für multimodale 2B-Parameter-Modelle. Native GGUF-Integration, Echtzeit-Visionsanalyse und High-Fidelity Audio-Visualisierung.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

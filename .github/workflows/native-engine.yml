@@ -1,0 +1,47 @@
+name: native-engine
+
+# Baut libllama.so (llama.cpp + ggml + Vulkan + mtmd + omni_shim) für arm64-v8a und prüft per
+# native_audit.py, dass ein GPU-Backend drin ist. Ergebnis als Artefakt; eingecheckt wird
+# bewusst manuell (app/src/main/jniLibs + native/provenance.json).
+on:
+  workflow_dispatch: {}
+  push:
+    paths:
+      - 'native/**'
+      - '.github/workflows/native-engine.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      NDK_VERSION: 27.3.13750724
+      VULKAN_HEADERS_TAG: v1.4.313   # an den llama.cpp-Stand (llama.rn-Ref) anpassen
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build python3-pip
+          pip install --break-system-packages capstone pyelftools || true
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;${NDK_VERSION}" "cmake;3.31.6"
+          git clone --depth 1 --branch "$VULKAN_HEADERS_TAG" \
+            https://github.com/KhronosGroup/Vulkan-Headers "$RUNNER_TEMP/vh"
+          echo "$ANDROID_HOME/cmake/3.31.6/bin" >> "$GITHUB_PATH"
+
+      - name: Build (Vulkan)
+        env:
+          ANDROID_NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/${{ env.NDK_VERSION }}
+          VULKAN_HEADERS: ${{ runner.temp }}/vh
+        run: native/build_engine.sh --backend vulkan
+
+      - name: Gate (GPU-Backend muss enthalten sein)
+        run: python3 native/native_audit.py --gate gpu app/src/main/jniLibs/arm64-v8a
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: jniLibs-vulkan
+          path: |
+            app/src/main/jniLibs/arm64-v8a/libllama.so
+            native/provenance.json

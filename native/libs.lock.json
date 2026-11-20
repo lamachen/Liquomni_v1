@@ -1,0 +1,66 @@
+{
+  "_comment": "Pins für den Native-Engine-Build. `native/build_engine.sh` und `native/fetch_prebuilt.sh` lesen diese Datei. sha256-Werte sind die verifizierten Hashes der am 2026-11-17 heruntergeladenen Artefakte.",
+  "engine": {
+    "llama_cpp_repo": "https://github.com/ggml-org/llama.cpp",
+    "llama_cpp_ref": "b11960",
+    "llama_cpp_note": "b11960 ist die Build-Nummer der aktuell im Repo committeten libllama.so (siehe native_audit.py -> 'llama.cpp: b11960'). Für GPU-Backends wird ein neu gebauter Engine-Kern benötigt; wird die Version erhöht, MUSS auch die JNI-Bridge neu gebaut werden (ABI von llama_model_params/llama_context_params).",
+    "jni_bridge_repo": "https://github.com/ljcamargo/kotlinllamacpp",
+    "jni_bridge_ref": "master",
+    "jni_bridge_note": "Quelle der Java_org_nehuatl_llamacpp_LlamaContext_*-Symbole: llamaCpp/src/main/cpp/jni.cpp",
+    "rnllama_source_repo": "https://github.com/mybigday/llama.rn",
+    "rnllama_source_ref": "v0.13.0-rc.12",
+    "rnllama_vendored_llama_build": 12445
+  },
+  "abi": {
+    "abis": ["arm64-v8a"],
+    "android_platform": "android-31",
+    "ndk": "27.3.13750724",
+    "cpu_arch_flags_default": "-march=armv8.2-a+dotprod+i8mm",
+    "cpu_arch_flags_fast": "-march=armv9.2-a+sve+sve2",
+    "cpu_arch_flags_note": "armv9.2-A+SVE2 lohnt nur, wenn das Zielgerät SVE2 hat (z. B. Google Tensor G3/G4/G5, Snapdragon 8 Gen2+). Eine so gebaute Bibliothek startet auf älteren Geräten mit SIGILL -> als separates Artefakt ausliefern, nicht als Default."
+  },
+  "prebuilts": {
+    "llama_cpp_android": {
+      "tag": "b12470",
+      "asset": "llama-b12470-bin-android-arm64.tar.gz",
+      "url": "https://github.com/ggml-org/llama.cpp/releases/download/b12470/llama-b12470-bin-android-arm64.tar.gz",
+      "sha256": "8e13bdc6cbd736afc1622b315c296dbddfffc4d13891e3c91d32c4d30a50529d",
+      "backends": ["cpu (alle ARM-Varianten: armv8.0/8.2/8.6/9.0/9.2)", "rpc"],
+      "gpu": false,
+      "note": "Offizieller Android-Build: CPU-only, aber mit GGML_CPU_ALL_VARIANTS (laufzeitabhängige ISA-Auswahl). Enthält libggml-base.so + libllama.so + libmtmd.so + libggml-cpu-*.so."
+    },
+    "llama_cpp_android_snapdragon": {
+      "tag": "b12470",
+      "asset": "llama-b12470-bin-android-arm64-snapdragon.tar.gz",
+      "url": "https://github.com/ggml-org/llama.cpp/releases/download/b12470/llama-b12470-bin-android-arm64-snapdragon.tar.gz",
+      "sha256": "ea5c5432bace3383e987229611649a3934656af5226b269615c418857818d510",
+      "backends": ["cpu", "opencl", "hexagon"],
+      "gpu": true,
+      "note": "Enthält libggml-opencl.so (Adreno) und libggml-hexagon.so + libggml-htp-vNN.so (Qualcomm NPU). Nur für Snapdragon-Geräte sinnvoll; auf Pixel (PowerVR) ist OpenCL i. d. R. nicht verfügbar -> dort ist Vulkan der Weg, und den liefert kein offizieller Build, also selbst bauen (build_engine.sh --backend vulkan)."
+    },
+    "llama_rn_jni_libs": {
+      "tag": "v0.13.0-rc.12",
+      "asset": "llama-rn-android-jni-libs.tar.gz",
+      "url": "https://github.com/mybigday/llama.rn/releases/download/v0.13.0-rc.12/llama-rn-android-jni-libs.tar.gz",
+      "sha256": "e6ebcc6c2627a6bf67be39e149260d8063d5b3672a5d56333ee6ec8294fffa61",
+      "note": "Monolithische librnllama_*.so von llama.rn (b12445). Die Variante ..._hexagon_opencl enthält die identische mtmd_helper_gen_audio_*-API wie unsere Engine. NICHT direkt austauschbar: andere llama.cpp-Version (ABI) und ohne die org.nehuatl JNI-Bridge."
+    }
+  },
+  "checksums": {
+    "app/src/main/jniLibs/arm64-v8a/libllama.so": "39fc749e7555152314811b3137a7c4d2e84a14ef6c8a8c426a4001a612ef129b",
+    "app/src/main/jniLibs/arm64-v8a/librnllama.so": "f6d3eb62143407c4fc7fea84cf17d3da2c191064786e36f4544ac2cda9ba543f",
+    "app/src/main/jniLibs/arm64-v8a/librnllama_v8.so": "c2acdd0dc4651ea3ddbc1f51bfa0d197aad42fbc66a574aa604a657be8f8a73f",
+    "app/src/main/jniLibs/arm64-v8a/librnllama_v8_2.so": "0a6a9ece572fa217f99030784237b0f5fa8f947b426e1394da4359f103279975",
+    "app/src/main/jniLibs/arm64-v8a/librnllama_v8_2_dotprod.so": "2a4e061cf7c9584dcbe05a40df3d685666d5b8dc90eb57e8408941fc96a7799c",
+    "app/src/main/jniLibs/arm64-v8a/librnllama_v8_2_dotprod_i8mm.so": "a9dc7d4320b2889180e86b1ab347a393498e8dc2cfea3b72f97e9b32dd6dea8e",
+    "app/src/main/jniLibs/arm64-v8a/librnllama_v8_2_i8mm.so": "e06f1f7b947df1a66c9605f6263b8ecd71f90f5e35ccef398f218c564498aa41"
+  },
+  "official_b12470_sha256": {
+    "libllama.so": "2912ce33b9ffb8ca1aff2523da3a0b28900f5ee34460b33a5f74cbae02300548",
+    "libggml-base.so": "15fee9efcebabf675c502fd4c080bfe27407c02cd248fc6301b3f473318d8dac",
+    "libggml.so": "7c3a1f2b780dbadfdad840906b08270e350aeb3c7b084805c5faba84b9aa2bbb",
+    "libmtmd.so": "4108e01a417db60582db1d99dff218c0c30b68ec5b533d64fd43bd2c5d32488a",
+    "libggml-opencl.so": "3579b304c2e75d4b70d17313a80100d3aca22a23fb739e9dc39c9d649de38b5a",
+    "libggml-hexagon.so": "a478d872d137df2237331169bb02f422ed8e86e271c3fe65f2b383e9893c4c3f"
+  }
+}
