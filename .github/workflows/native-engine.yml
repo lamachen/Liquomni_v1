@@ -23,7 +23,7 @@ jobs:
       - name: Toolchain
         run: |
           sudo apt-get update
-          sudo apt-get install -y ninja-build python3-pip
+          sudo apt-get install -y ninja-build python3-pip libspirv-headers-dev
           pip install --break-system-packages capstone pyelftools || true
           if [ -z "$(ls -d "$ANDROID_HOME"/ndk/* 2>/dev/null)" ]; then
             yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;27.2.12479018"
@@ -31,10 +31,14 @@ jobs:
           echo "NDK verfuegbar unter: $(ls -d "$ANDROID_HOME"/ndk/* 2>/dev/null)"
           git clone --depth 1 --branch "$VULKAN_HEADERS_TAG" \
             https://github.com/KhronosGroup/Vulkan-Headers "$RUNNER_TEMP/vh"
+          git clone --depth 1 https://github.com/KhronosGroup/SPIRV-Headers "$RUNNER_TEMP/spirv-headers"
+          cmake -S "$RUNNER_TEMP/spirv-headers" -B "$RUNNER_TEMP/spirv-headers/build" -DCMAKE_INSTALL_PREFIX="$RUNNER_TEMP/spirv-install"
+          cmake --build "$RUNNER_TEMP/spirv-headers/build" --target install
 
       - name: Build (Vulkan)
         env:
           VULKAN_HEADERS: ${{ runner.temp }}/vh
+          SPIRV_HEADERS_DIR: ${{ runner.temp }}/spirv-install/share/cmake/SPIRV-Headers
         run: |
           export ANDROID_NDK_HOME="$(ls -d "$ANDROID_HOME"/ndk/* | sort -V | tail -1)"
           echo "Verwende NDK: $ANDROID_NDK_HOME"
